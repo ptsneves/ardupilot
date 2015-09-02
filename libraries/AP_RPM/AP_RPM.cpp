@@ -16,6 +16,7 @@
 
 #include "AP_RPM.h"
 #include "RPM_PX4_PWM.h"
+#include "AP_RPM_AIRBORNE.h"
 
 extern const AP_HAL::HAL& hal;
 
@@ -24,8 +25,8 @@ const AP_Param::GroupInfo AP_RPM::var_info[] PROGMEM = {
     // @Param: _TYPE
     // @DisplayName: RPM type
     // @Description: What type of RPM sensor is connected
-    // @Values: 0:None,1:PX4-PWM
-    AP_GROUPINFO("_TYPE",    0, AP_RPM, _type[0], 0),
+    // @Values: 0:None,1:PX4-PWM,2:Airborne
+    AP_GROUPINFO("_TYPE",    0, AP_RPM, _type[0], RPM_TYPE_AIRBORNE),
 
     // @Param: _SCALING
     // @DisplayName: RPM scaling
@@ -33,7 +34,7 @@ const AP_Param::GroupInfo AP_RPM::var_info[] PROGMEM = {
     // @Increment: 0.001
     AP_GROUPINFO("_SCALING", 1, AP_RPM, _scaling[0], 1.0f),
 
-#if RPM_MAX_INSTANCES > 1
+#if RPM_MAX_INSTANCES > 1 && (CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN)
     // @Param: 2_TYPE
     // @DisplayName: Second RPM type
     // @Description: What type of RPM sensor is connected
@@ -44,9 +45,28 @@ const AP_Param::GroupInfo AP_RPM::var_info[] PROGMEM = {
     // @DisplayName: RPM scaling
     // @Description: Scaling factor between sensor reading and RPM.
     // @Increment: 0.001
-    AP_GROUPINFO("2_SCALING", 11, AP_RPM, _scaling[1], 1.0f),
-#endif
+    AP_GROUPINFO("2_SCALING", 11, AP_RPM, _scaling[1], 2.0f),
+#elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 
+
+#define RPM_SENSOR_PARAMS(PARAM_N) \
+    AP_GROUPINFO(#PARAM_N"_TYPE",    PARAM_N * 2, AP_RPM, _type[PARAM_N], RPM_TYPE_AIRBORNE), \
+    AP_GROUPINFO(#PARAM_N"_SCALING", ( PARAM_N*2 )+1, AP_RPM, _scaling[PARAM_N], 1.0f)
+
+    RPM_SENSOR_PARAMS(1),
+
+    RPM_SENSOR_PARAMS(2),
+
+    RPM_SENSOR_PARAMS(3),
+
+    RPM_SENSOR_PARAMS(4),
+
+    RPM_SENSOR_PARAMS(5),
+
+    RPM_SENSOR_PARAMS(6),
+
+    RPM_SENSOR_PARAMS(7),
+#endif
     AP_GROUPEND
 };
 
@@ -70,19 +90,25 @@ void AP_RPM::init(void)
         return;
     }
     for (uint8_t i=0; i<RPM_MAX_INSTANCES; i++) {
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4  || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
-        uint8_t type = _type[num_instances];
+        uint8_t type = _type[i];
         uint8_t instance = num_instances;
 
+#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
+        if (type == RPM_TYPE_AIRBORNE) {
+            state[instance].instance = instance;
+            drivers[instance] = new AP_RPM_AIRBORNE(*this, instance, state[instance]);
+        }
+#elif CONFIG_HAL_BOARD == HAL_BOARD_PX4  || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
         if (type == RPM_TYPE_PX4_PWM) {
             state[instance].instance = instance;
             drivers[instance] = new AP_RPM_PX4_PWM(*this, instance, state[instance]);
         }
 #endif
+
         if (drivers[i] != NULL) {
             // we loaded a driver for this instance, so it must be
             // present (although it may not be healthy)
-            num_instances = i+1;
+            num_instances++;
         }
     }
 }

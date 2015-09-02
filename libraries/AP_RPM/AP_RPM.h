@@ -23,9 +23,9 @@
 #include <AP_Math/AP_Math.h>
 
 // Maximum number of RPM measurement instances available on this platform
-#define RPM_MAX_INSTANCES 2
+#define RPM_MAX_INSTANCES 8
 
-class AP_RPM_Backend; 
+class AP_RPM_Backend;
  
 class AP_RPM
 {
@@ -36,8 +36,9 @@ public:
 
     // RPM driver types
     enum RPM_Type {
-        RPM_TYPE_NONE    = 0,
-        RPM_TYPE_PX4_PWM = 1
+        RPM_TYPE_NONE     = 0,
+        RPM_TYPE_PX4_PWM  = 1,
+        RPM_TYPE_AIRBORNE = 2
     };
 
     // The RPM_State structure is filled in by the backend driver
@@ -79,7 +80,7 @@ public:
 private:
     RPM_State state[RPM_MAX_INSTANCES];
     AP_RPM_Backend *drivers[RPM_MAX_INSTANCES];
-    uint8_t num_instances:2;
+    uint8_t num_instances;
 
     void detect_instance(uint8_t instance);
     void update_instance(uint8_t instance);  
