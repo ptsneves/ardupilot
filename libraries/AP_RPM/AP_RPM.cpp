@@ -26,27 +26,13 @@ const AP_Param::GroupInfo AP_RPM::var_info[] PROGMEM = {
     // @DisplayName: RPM type
     // @Description: What type of RPM sensor is connected
     // @Values: 0:None,1:PX4-PWM,2:Airborne
-    AP_GROUPINFO("_TYPE",    0, AP_RPM, _type[0], RPM_TYPE_AIRBORNE),
+    AP_GROUPINFO("0_TYPE",    0, AP_RPM, _type[0], RPM_TYPE_AIRBORNE),
 
     // @Param: _SCALING
     // @DisplayName: RPM scaling
     // @Description: Scaling factor between sensor reading and RPM.
     // @Increment: 0.001
-    AP_GROUPINFO("_SCALING", 1, AP_RPM, _scaling[0], 1.0f),
-
-#if RPM_MAX_INSTANCES > 1 && (CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN)
-    // @Param: 2_TYPE
-    // @DisplayName: Second RPM type
-    // @Description: What type of RPM sensor is connected
-    // @Values: 0:None,1:PX4-PWM
-    AP_GROUPINFO("2_TYPE",    10, AP_RPM, _type[1], 0),
-
-    // @Param: 2_SCALING
-    // @DisplayName: RPM scaling
-    // @Description: Scaling factor between sensor reading and RPM.
-    // @Increment: 0.001
-    AP_GROUPINFO("2_SCALING", 11, AP_RPM, _scaling[1], 2.0f),
-#elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX
+    AP_GROUPINFO("0_SCALING", 1, AP_RPM, _scaling[0], 1.0f),
 
 
 #define RPM_SENSOR_PARAMS(PARAM_N) \
@@ -66,7 +52,6 @@ const AP_Param::GroupInfo AP_RPM::var_info[] PROGMEM = {
     RPM_SENSOR_PARAMS(6),
 
     RPM_SENSOR_PARAMS(7),
-#endif
     AP_GROUPEND
 };
 
