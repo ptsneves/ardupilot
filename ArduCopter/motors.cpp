@@ -627,12 +627,6 @@ bool Copter::pre_arm_gps_checks(bool display_failure)
         return false;
     }
 
-    // return true immediately if gps check is disabled
-    if (!(g.arming_check == ARMING_CHECK_ALL || g.arming_check & ARMING_CHECK_GPS)) {
-        AP_Notify::flags.pre_arm_gps_check = true;
-        return true;
-    }
-
     // check if flight mode requires GPS
     bool gps_required = mode_requires_GPS(control_mode);
 
@@ -652,9 +646,26 @@ bool Copter::pre_arm_gps_checks(bool display_failure)
     // ensure GPS is ok
     if (!position_ok()) {
         if (display_failure) {
-            gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Need 3D Fix"));
+            const char *reason = ahrs.prearm_failure_reason();
+            if (reason) {
+                GCS_MAVLINK::send_statustext_all(SEVERITY_HIGH, PSTR("PreArm: %s"), reason);
+            } else {
+                gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Need 3D Fix"));
+        }
         }
         AP_Notify::flags.pre_arm_gps_check = false;
+        return false;
+    }
+
+    // check EKF compass variance is below failsafe threshold
+    float vel_variance, pos_variance, hgt_variance, tas_variance;
+    Vector3f mag_variance;
+    Vector2f offset;
+    ahrs.get_NavEKF().getVariances(vel_variance, pos_variance, hgt_variance, mag_variance, tas_variance, offset);
+    if (mag_variance.length() >= g.fs_ekf_thresh) {
+        if (display_failure) {
+            gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: EKF compass variance"));
+        }
         return false;
     }
 
@@ -665,6 +676,12 @@ bool Copter::pre_arm_gps_checks(bool display_failure)
         }
         AP_Notify::flags.pre_arm_gps_check = false;
         return false;
+    }
+
+    // return true immediately if gps check is disabled
+    if (!(g.arming_check == ARMING_CHECK_ALL || g.arming_check & ARMING_CHECK_GPS)) {
+        AP_Notify::flags.pre_arm_gps_check = true;
+        return true;
     }
 
     // warn about hdop separately - to prevent user confusion with no gps lock
@@ -723,6 +740,11 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
         return false;
     }
 
+    // always check gps
+    if (!pre_arm_gps_checks(display_failure)) {
+        return false;
+    }
+
     // always check if rotor is spinning on heli
 #if FRAME_CONFIG == HELI_FRAME
     // heli specific arming check
@@ -759,11 +781,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
             }
             return false;
         }
-    }
-
-    // check gps
-    if (!pre_arm_gps_checks(display_failure)) {
-        return false;
     }
 
 #if AC_FENCE == ENABLED
