@@ -21,6 +21,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
+#include <AP_SerialManager/AP_SerialManager.h>
 
 // Maximum number of RPM measurement instances available on this platform
 #define RPM_MAX_INSTANCES 8
@@ -60,7 +61,7 @@ public:
     }
 
     // detect and initialise any available rpm sensors
-    void init(void);
+    void init(const AP_SerialManager& serial_manager);
 
     // update state of all rpm sensors. Should be called from main loop
     void update(void);

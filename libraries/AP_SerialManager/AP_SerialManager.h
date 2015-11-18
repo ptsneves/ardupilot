@@ -66,6 +66,9 @@
 #define AP_SERIALMANAGER_SToRM32_BUFSIZE_RX     128
 #define AP_SERIALMANAGER_SToRM32_BUFSIZE_TX     128
 
+#define AP_SERIALMANAGER_RPM_AIRBORNE_BAUD      9600
+#define AP_SERIALMANAGER_RPM_AIRBORNE_BUFSIZE_RX 128
+#define AP_SERIALMANAGER_RPM_AIRBORNE_BUFSIZE_TX 128
 
 class AP_SerialManager {
 
@@ -81,6 +84,7 @@ public:
         SerialProtocol_GPS2 = 6,        // do not use - use GPS and provide instance of 1
         SerialProtocol_AlexMos = 7,
         SerialProtocol_SToRM32 = 8,
+        SerialProtocol_RPM_Airborne = 10
     };
 
     // Constructor

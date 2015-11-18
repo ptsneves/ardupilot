@@ -17,27 +17,41 @@
 #ifndef AP_RPM_AIRBORNE_H
 #define AP_RPM_AIRBORNE_H
 
+#include <AP_SerialManager/AP_SerialManager.h>
+
 #include "AP_RPM.h"
 #include "RPM_Backend.h"
 
-class AP_RPM_AIRBORNE : public AP_RPM_Backend
+#define AP_RPM_AIRBORNEPROJECTS_BUFFER_SIZE 128
+
+class AP_RPM_AIRBORNE
 {
 public:
     // constructor
-    AP_RPM_AIRBORNE(AP_RPM &_ap_rpm, uint8_t instance, AP_RPM::RPM_State& _state);
+    AP_RPM_AIRBORNE(const AP_SerialManager& serial_manager);
 
     // destructor
     ~AP_RPM_AIRBORNE(void);
 
     // update state
     void update();
+    uint16_t getRPM(const uint8_t& instance_index);
 private:
-    uint8_t instance_sensor_index;
-    static const uint8_t _buffer_size = 100;
-    static uint16_t _sensor_rpms[8];
-    static uint8_t sensor_attributed_count;
-    static int _fd;
-    static uint8_t _buffer[_buffer_size];
+    uint16_t _sensor_rpms[8];
+    uint8_t _buffer[AP_RPM_AIRBORNEPROJECTS_BUFFER_SIZE];
+    AP_HAL::UARTDriver *_port;
+};
+
+class AP_RPM_AIRBORNE_HELPER : public AP_RPM_Backend
+{
+public:
+    AP_RPM_AIRBORNE_HELPER(AP_RPM &_ap_rpm, AP_RPM::RPM_State& _state, uint8_t instance_index,
+        AP_RPM_AIRBORNE** existing_driver, const AP_SerialManager& serial_manager);
+    ~AP_RPM_AIRBORNE_HELPER();
+    void update();
+private:
+    uint8_t _instance_index;
+    AP_RPM_AIRBORNE** _driver;
 };
 
 #endif // AP_RPM_AIRBORNE_H

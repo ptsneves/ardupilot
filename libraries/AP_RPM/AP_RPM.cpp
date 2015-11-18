@@ -26,20 +26,18 @@ const AP_Param::GroupInfo AP_RPM::var_info[] PROGMEM = {
     // @DisplayName: RPM type
     // @Description: What type of RPM sensor is connected
     // @Values: 0:None,1:PX4-PWM,2:Airborne
-    AP_GROUPINFO("0_TYPE",    0, AP_RPM, _type[0], RPM_TYPE_AIRBORNE),
+    AP_GROUPINFO("1_TYPE", 0, AP_RPM, _type[0], RPM_TYPE_AIRBORNE),
 
     // @Param: _SCALING
     // @DisplayName: RPM scaling
     // @Description: Scaling factor between sensor reading and RPM.
     // @Increment: 0.001
-    AP_GROUPINFO("0_SCALING", 1, AP_RPM, _scaling[0], 1.0f),
+    AP_GROUPINFO("1_SCALING", 1, AP_RPM, _scaling[0], 1.0f),
 
 
 #define RPM_SENSOR_PARAMS(PARAM_N) \
-    AP_GROUPINFO(#PARAM_N"_TYPE",    PARAM_N * 2, AP_RPM, _type[PARAM_N], RPM_TYPE_AIRBORNE), \
-    AP_GROUPINFO(#PARAM_N"_SCALING", ( PARAM_N*2 )+1, AP_RPM, _scaling[PARAM_N], 1.0f)
-
-    RPM_SENSOR_PARAMS(1),
+    AP_GROUPINFO(#PARAM_N"_TYPE",    (PARAM_N-1) * 2, AP_RPM, _type[PARAM_N-1], RPM_TYPE_AIRBORNE), \
+    AP_GROUPINFO(#PARAM_N"_SCALING", ( (PARAM_N-1)*2 )+1, AP_RPM, _scaling[PARAM_N-1], 1.0f)
 
     RPM_SENSOR_PARAMS(2),
 
@@ -52,6 +50,8 @@ const AP_Param::GroupInfo AP_RPM::var_info[] PROGMEM = {
     RPM_SENSOR_PARAMS(6),
 
     RPM_SENSOR_PARAMS(7),
+
+    RPM_SENSOR_PARAMS(8),
     AP_GROUPEND
 };
 
@@ -68,28 +68,27 @@ AP_RPM::AP_RPM(void) :
 /*
   initialise the AP_RPM class. 
  */
-void AP_RPM::init(void)
+void AP_RPM::init(const AP_SerialManager& serial_manager)
 {
     if (num_instances != 0) {
         // init called a 2nd time?
         return;
     }
-    for (uint8_t i=0; i<RPM_MAX_INSTANCES; i++) {
+    AP_RPM_AIRBORNE** initialized_driver = new AP_RPM_AIRBORNE*;
+    for (uint8_t i = 0; i < RPM_MAX_INSTANCES; i++) {
         uint8_t type = _type[i];
         uint8_t instance = num_instances;
-
-#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
         if (type == RPM_TYPE_AIRBORNE) {
             state[instance].instance = instance;
-            drivers[instance] = new AP_RPM_AIRBORNE(*this, instance, state[instance]);
+            drivers[instance] = new AP_RPM_AIRBORNE_HELPER(*this, state[instance], instance,
+                initialized_driver, serial_manager);
         }
-#elif CONFIG_HAL_BOARD == HAL_BOARD_PX4  || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
+#if CONFIG_HAL_BOARD == HAL_BOARD_PX4  || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
         if (type == RPM_TYPE_PX4_PWM) {
             state[instance].instance = instance;
             drivers[instance] = new AP_RPM_PX4_PWM(*this, instance, state[instance]);
         }
 #endif
-
         if (drivers[i] != NULL) {
             // we loaded a driver for this instance, so it must be
             // present (although it may not be healthy)

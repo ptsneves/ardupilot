@@ -7,3 +7,5 @@ LIBRARIES += AP_Param
 LIBRARIES += AP_Progmem
 LIBRARIES += StorageManager
 LIBRARIES += AP_RPM
+LIBRARIES += AP_SerialManager
+LIBRARIES += GCS_MAVLink

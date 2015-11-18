@@ -167,6 +167,13 @@ void AP_SerialManager::init()
                                          AP_SERIALMANAGER_SToRM32_BUFSIZE_RX,
                                          AP_SERIALMANAGER_SToRM32_BUFSIZE_TX);
                     break;
+                case SerialProtocol_RPM_Airborne:
+                    // Note baudrate is hardcoded to 9600
+                    state[i].baud = AP_SERIALMANAGER_RPM_AIRBORNE_BAUD / 1000;
+                    state[i].uart->begin(map_baudrate(state[i].baud),
+                                        AP_SERIALMANAGER_RPM_AIRBORNE_BUFSIZE_RX,
+                                        AP_SERIALMANAGER_RPM_AIRBORNE_BUFSIZE_TX);
+                   break;
             }
         }
     }

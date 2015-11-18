@@ -12,9 +12,14 @@
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 static AP_RPM ap_rpm;
 
+static AP_SerialManager manager;
+
 void setup() {
+
+
 	hal.console->println_P(PSTR("Airborne Projects setup"));
-	ap_rpm.init();
+	manager.init();
+	ap_rpm.init(manager);
 
 }
 void loop() {

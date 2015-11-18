@@ -951,6 +951,15 @@
       <field name="rpm7" type="float">RPM Sensor7</field>
       <field name="rpm8" type="float">RPM Sensor8</field>
     </message>
+    
+    <message id="227" name="AIRBORNE_RPM">
+     <description>The message shows that a system is present and
+          responding. It is also the only message we send. It contains all the
+          possible sensors, which max
+          out at 8.
+     </description>
+     <field type="uint16_t[8]" name="RPM"> RPM sensor array</field>
+     </message>
 
      </messages>
 </mavlink>
