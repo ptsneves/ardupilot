@@ -34,10 +34,17 @@ const AP_Param::GroupInfo AP_RPM::var_info[] PROGMEM = {
     // @Increment: 0.001
     AP_GROUPINFO("1_SCALING", 1, AP_RPM, _scaling[0], 1.0f),
 
+    // @Param: _MAX
+    // @DisplayName: Maximum RPM
+    // @Description: Maximum RPM to report
+    // @Increment: 1
+    AP_GROUPINFO("1_MAX", 2, AP_RPM, _maximum[0], 0),
+
 
 #define RPM_SENSOR_PARAMS(PARAM_N) \
-    AP_GROUPINFO(#PARAM_N"_TYPE",    (PARAM_N-1) * 2, AP_RPM, _type[PARAM_N-1], RPM_TYPE_AIRBORNE), \
-    AP_GROUPINFO(#PARAM_N"_SCALING", ( (PARAM_N-1)*2 )+1, AP_RPM, _scaling[PARAM_N-1], 1.0f)
+    AP_GROUPINFO(#PARAM_N"_TYPE",    (PARAM_N-1) * 3, AP_RPM, _type[PARAM_N-1], RPM_TYPE_AIRBORNE), \
+    AP_GROUPINFO(#PARAM_N"_SCALING", ( (PARAM_N-1)*3 )+1, AP_RPM, _scaling[PARAM_N-1], 1.0f), \
+    AP_GROUPINFO(#PARAM_N"_MAX", ( (PARAM_N-1)*3 )+2, AP_RPM, _maximum[PARAM_N-1], 5000) \
 
     RPM_SENSOR_PARAMS(2),
 

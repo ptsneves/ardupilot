@@ -82,6 +82,9 @@ public:
         // Landing gear object
         k_param_landinggear,    // 18
 
+        // Input Management object
+        k_param_input_manager,  // 19 FULL!
+
         // Misc
         //
         k_param_log_bitmask_old = 20,           // Deprecated
@@ -159,13 +162,15 @@ public:
         k_param_heli_pitch_ff,      // remove
         k_param_heli_roll_ff,       // remove
         k_param_heli_yaw_ff,        // remove
-        k_param_heli_stab_col_min,
-        k_param_heli_stab_col_max,  // 88
+        k_param_heli_stab_col_min,  // remove
+        k_param_heli_stab_col_max,  // remove
+        k_param_heli_servo_rsc,     // 89 = full!
 
         //
         // 90: Motors
         //
         k_param_motors = 90,
+        k_param_disarm_delay,
 
         //
         // 100: Inertial Nav
@@ -423,6 +428,7 @@ public:
     AP_Int8         ch11_option;
     AP_Int8         ch12_option;
     AP_Int8         arming_check;
+    AP_Int8         disarm_delay;
 
     AP_Int8         land_repositioning;
     AP_Int8         fs_ekf_action;
@@ -432,8 +438,7 @@ public:
 #if FRAME_CONFIG ==     HELI_FRAME
     // Heli
     RC_Channel      heli_servo_1, heli_servo_2, heli_servo_3, heli_servo_4;     // servos for swash plate and tail
-    AP_Int16        heli_stab_col_min;                                          // min collective while pilot directly controls collective in stabilize mode
-    AP_Int16        heli_stab_col_max;                                          // min collective while pilot directly controls collective in stabilize mode
+    RC_Channel      heli_servo_rsc;                                             // servo for rotor speed control output
 #endif
 #if FRAME_CONFIG ==     SINGLE_FRAME
     // Single
@@ -510,6 +515,7 @@ public:
         heli_servo_2        (CH_2),
         heli_servo_3        (CH_3),
         heli_servo_4        (CH_4),
+        heli_servo_rsc      (CH_8),
 #endif
 #if FRAME_CONFIG ==     SINGLE_FRAME
         single_servo_1        (CH_1),
