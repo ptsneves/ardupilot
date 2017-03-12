@@ -206,7 +206,12 @@ const AP_Param::GroupInfo AP_Mount::var_info[] = {
 
     // 23 formerly _K_RATE
 
-    // 24 is AVAILABLE
+    // @Param: _OFF_POS
+    // @DisplayName: Relative position in meters from Mount to CG in NEF referential.
+    // @Description: Allows you to get camera messages and logs consistent with mount position.
+    // @Units: meters
+    // @User: Advanced
+    AP_GROUPINFO("_OFF_POS", 24, AP_Mount, state[0]._offset_positions, 0),
 
 #if AP_MOUNT_MAX_INSTANCES > 1
     // @Param: 2_DEFLT_MODE
@@ -388,6 +393,14 @@ const AP_Param::GroupInfo AP_Mount::var_info[] = {
     // @Values: 0:None, 1:Servo, 2:3DR Solo, 3:Alexmos Serial, 4:SToRM32 MAVLink, 5:SToRM32 Serial
     // @User: Standard
     AP_GROUPINFO("2_TYPE",           42, AP_Mount, state[1]._type, 0),
+
+    // @Param: _OFF_POS
+    // @DisplayName: Relative position in meters from Mount to CG in NEF referential.
+    // @Description: Allows you to get camera messages and logs consistent with mount position.
+    // @Units: meters
+    // @User: Advanced
+    AP_GROUPINFO("_OFF_POS", 43, AP_Mount, state[1]._offset_positions, 0),
+
 #endif // AP_MOUNT_MAX_INSTANCES > 1
 
     AP_GROUPEND
@@ -399,7 +412,7 @@ AP_Mount::AP_Mount(const AP_AHRS_TYPE &ahrs, const struct Location &current_loc)
     _num_instances(0),
     _primary(0)
 {
-	AP_Param::setup_object_defaults(this, var_info);
+    AP_Param::setup_object_defaults(this, var_info);
 
     // initialise backend pointers and mode
     for (uint8_t i=0; i<AP_MOUNT_MAX_INSTANCES; i++) {
@@ -520,6 +533,14 @@ bool AP_Mount::has_pan_control(uint8_t instance) const
     return _backends[instance]->has_pan_control();
 }
 
+Location AP_Mount::location(uint8_t instance, const Location& cg_location, const AP_AHRS &ahrs) const {
+    Location mount_location = cg_location;
+    Vector3f offsets = state[instance]._offset_positions.get();
+    //offsets.y = - offsets.y * sin(ahrs.roll);
+    //offsets.x = 
+    location_offset(mount_location, offsets.x, offsets.y);
+    return mount_location;
+}
 // get_mode - returns current mode of mount (i.e. Retracted, Neutral, RC_Targeting, GPS Point)
 MAV_MOUNT_MODE AP_Mount::get_mode(uint8_t instance) const
 {

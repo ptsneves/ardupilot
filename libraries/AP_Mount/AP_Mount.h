@@ -26,7 +26,6 @@
 #include <GCS_MAVLink/GCS_MAVLink.h>
 #include <RC_Channel/RC_Channel.h>
 #include <AP_SerialManager/AP_SerialManager.h>
-#include <DataFlash/DataFlash.h>
 
 // maximum number of mounts
 #define AP_MOUNT_MAX_INSTANCES          1
@@ -85,6 +84,9 @@ public:
     // has_pan_control - returns true if the mount has yaw control (required for copters)
     bool has_pan_control() const { return has_pan_control(_primary); }
     bool has_pan_control(uint8_t instance) const;
+
+		// location - get location of gimbal position considering offsets to CG
+		Location location(uint8_t instance, const Location& current_loc, const AP_AHRS &ahrs) const;
 
     // get_mode - returns current mode of mount (i.e. Retracted, Neutral, RC_Targeting, GPS Point)
     enum MAV_MOUNT_MODE get_mode() const { return get_mode(_primary); }
@@ -176,6 +178,8 @@ protected:
 
         AP_Float        _roll_stb_lead;     // roll lead control gain
         AP_Float        _pitch_stb_lead;    // pitch lead control gain
+
+				AP_Vector3f    _offset_positions;   // Mount offsets from center of gravity
 
         MAV_MOUNT_MODE  _mode;              // current mode (see MAV_MOUNT_MODE enum)
         struct Location _roi_target;        // roi target location

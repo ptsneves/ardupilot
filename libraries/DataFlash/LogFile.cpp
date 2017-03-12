@@ -1765,15 +1765,16 @@ void DataFlash_Class::Log_Write_Radio(const mavlink_radio_t &packet)
 }
 
 // Write a Camera packet
-void DataFlash_Class::Log_Write_CameraInfo(enum LogMessages msg, const AP_AHRS &ahrs, const AP_GPS &gps, const Location &current_loc)
+void DataFlash_Class::Log_Write_CameraInfo(enum LogMessages msg, const AP_AHRS &ahrs, const AP_Mount& mount, const AP_GPS &gps, const Location &current_loc)
 {
+		Location mount_location = mount.location(0, current_loc, ahrs);
     int32_t altitude, altitude_rel, altitude_gps;
-    if (current_loc.flags.relative_alt) {
-        altitude = current_loc.alt+ahrs.get_home().alt;
-        altitude_rel = current_loc.alt;
+    if (mount_location.flags.relative_alt) {
+        altitude = mount_location.alt+ahrs.get_home().alt;
+        altitude_rel = mount_location.alt;
     } else {
-        altitude = current_loc.alt;
-        altitude_rel = current_loc.alt - ahrs.get_home().alt;
+        altitude = mount_location.alt;
+        altitude_rel = mount_location.alt - ahrs.get_home().alt;
     }
     if (gps.status() >= AP_GPS::GPS_OK_FIX_3D) {
         altitude_gps = gps.location().alt;
@@ -1786,8 +1787,8 @@ void DataFlash_Class::Log_Write_CameraInfo(enum LogMessages msg, const AP_AHRS &
         time_us     : AP_HAL::micros64(),
         gps_time    : gps.time_week_ms(),
         gps_week    : gps.time_week(),
-        latitude    : current_loc.lat,
-        longitude   : current_loc.lng,
+        latitude    : mount_location.lat,
+        longitude   : mount_location.lng,
         altitude    : altitude,
         altitude_rel: altitude_rel,
         altitude_gps: altitude_gps,
@@ -1799,15 +1800,15 @@ void DataFlash_Class::Log_Write_CameraInfo(enum LogMessages msg, const AP_AHRS &
 }
 
 // Write a Camera packet
-void DataFlash_Class::Log_Write_Camera(const AP_AHRS &ahrs, const AP_GPS &gps, const Location &current_loc)
+void DataFlash_Class::Log_Write_Camera(const AP_AHRS &ahrs, const AP_Mount& mount, const AP_GPS &gps, const Location &current_loc)
 {
-    Log_Write_CameraInfo(LOG_CAMERA_MSG, ahrs, gps, current_loc);
+    Log_Write_CameraInfo(LOG_CAMERA_MSG, ahrs, mount, gps, current_loc);
 }
 
 // Write a Trigger packet
-void DataFlash_Class::Log_Write_Trigger(const AP_AHRS &ahrs, const AP_GPS &gps, const Location &current_loc)
+void DataFlash_Class::Log_Write_Trigger(const AP_AHRS &ahrs, const AP_Mount& mount, const AP_GPS &gps, const Location &current_loc)
 {
-    Log_Write_CameraInfo(LOG_TRIGGER_MSG, ahrs, gps, current_loc);
+    Log_Write_CameraInfo(LOG_TRIGGER_MSG, ahrs, mount, gps, current_loc);
 }
 
 // Write an attitude packet

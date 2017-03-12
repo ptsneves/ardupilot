@@ -21,6 +21,7 @@
 #include <AP_Motors/AP_Motors.h>
 #include <AP_Rally/AP_Rally.h>
 #include <stdint.h>
+#include <AP_Mount/AP_Mount.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
 #include <uORB/topics/esc_status.h>
@@ -128,9 +129,9 @@ public:
     bool Log_Write_MavCmd(uint16_t cmd_total, const mavlink_mission_item_t& mav_cmd);
     void Log_Write_Radio(const mavlink_radio_t &packet);
     void Log_Write_Message(const char *message);
-    void Log_Write_CameraInfo(enum LogMessages msg, const AP_AHRS &ahrs, const AP_GPS &gps, const Location &current_loc);
-    void Log_Write_Camera(const AP_AHRS &ahrs, const AP_GPS &gps, const Location &current_loc);
-    void Log_Write_Trigger(const AP_AHRS &ahrs, const AP_GPS &gps, const Location &current_loc);    
+    void Log_Write_CameraInfo(enum LogMessages msg, const AP_AHRS &ahrs, const AP_Mount &mount, const AP_GPS &gps, const Location &current_loc);
+    void Log_Write_Camera(const AP_AHRS &ahrs, const AP_Mount &mount, const AP_GPS &gps, const Location &current_loc);
+    void Log_Write_Trigger(const AP_AHRS &ahrs, const AP_Mount &mount, const AP_GPS &gps, const Location &current_loc);
     void Log_Write_ESC(void);
     void Log_Write_Airspeed(AP_Airspeed &airspeed);
     void Log_Write_Attitude(AP_AHRS &ahrs, const Vector3f &targets);
