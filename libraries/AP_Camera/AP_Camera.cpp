@@ -91,13 +91,20 @@ const AP_Param::GroupInfo AP_Camera::var_info[] = {
     // @Values: 0:TriggerLow,1:TriggerHigh
     // @User: Standard
     AP_GROUPINFO("FEEDBACK_POL",  9, AP_Camera, _feedback_polarity, 1),
-    
+
     // @Param: AUTO_ONLY
     // @DisplayName: Distance-trigging in AUTO mode only
     // @Description: When enabled, trigging by distance is done in AUTO mode only.
     // @Values: 0:Always,1:Only when in AUTO
     // @User: Standard
     AP_GROUPINFO("AUTO_ONLY",  10, AP_Camera, _auto_mode_only, 0),
+
+    // @Param: CAM_OFFSET
+    // @DisplayName: Relative position in meters from Mount to AHRS' reported position in NED referential.
+    // @Description: Allows you to get camera messages and logs consistent with mount position.
+    // @Units: m
+    // @User: Advanced
+    AP_GROUPINFO("CAM_OFFSET", 11, AP_Camera, _offset_positions, 0),
 
     AP_GROUPEND
 };
@@ -242,20 +249,21 @@ void AP_Camera::control(float session, float zoom_pos, float zoom_step, float fo
  */
 void AP_Camera::send_feedback(mavlink_channel_t chan)
 {
+    Location offset_location = location(current_loc);
     float altitude, altitude_rel;
-    if (current_loc.flags.relative_alt) {
-        altitude = current_loc.alt+ahrs.get_home().alt;
-        altitude_rel = current_loc.alt;
+    if (offset_location.flags.relative_alt) {
+        altitude = offset_location.alt+ahrs.get_home().alt;
+        altitude_rel = offset_location.alt;
     } else {
-        altitude = current_loc.alt;
-        altitude_rel = current_loc.alt - ahrs.get_home().alt;
+        altitude = offset_location.alt;
+        altitude_rel = offset_location.alt - ahrs.get_home().alt;
     }
 
     mavlink_msg_camera_feedback_send(
         chan,
         AP::gps().time_epoch_usec(),
         0, 0, _image_index,
-        current_loc.lat, current_loc.lng,
+        offset_location.lat, offset_location.lng,
         altitude*1e-2, altitude_rel*1e-2,
         ahrs.roll_sensor*1e-2, ahrs.pitch_sensor*1e-2, ahrs.yaw_sensor*1e-2,
         0.0f, CAMERA_FEEDBACK_PHOTO, _feedback_events);
@@ -403,14 +411,16 @@ void AP_Camera::log_picture()
     if (df == nullptr) {
         return;
     }
+
+    Location offset_location = location(current_loc);
     if (!using_feedback_pin()) {
         gcs().send_message(MSG_CAMERA_FEEDBACK);
         if (df->should_log(log_camera_bit)) {
-            df->Log_Write_Camera(ahrs, current_loc);
+            df->Log_Write_Camera(ahrs, offset_location);
         }
     } else {
         if (df->should_log(log_camera_bit)) {
-            df->Log_Write_Trigger(ahrs, current_loc);
+            df->Log_Write_Trigger(ahrs, offset_location);
         }
     }
 }
@@ -450,4 +460,16 @@ void AP_Camera::update_trigger()
             }
         }
     }
+}
+
+Location AP_Camera::location(Location camera_location) const {
+    Vector3f offsets = _offset_positions.get();
+
+    Matrix3f vehicle_dcm;
+    vehicle_dcm.from_euler(ahrs.roll, ahrs.pitch, ahrs.yaw);
+
+    Vector3f rotated_offsets = vehicle_dcm * offsets;
+    location_offset(camera_location, rotated_offsets.x, rotated_offsets.y);
+    camera_location.alt += rotated_offsets.z;
+    return camera_location;
 }

@@ -67,6 +67,9 @@ public:
     // update camera trigger - 50Hz
     void update_trigger();
 
+    // location - get location of gimbal position considering offsets to CG
+    Location location(Location camera_location) const;
+
     static const struct AP_Param::GroupInfo        var_info[];
 
     // set if vehicle is in AUTO mode
@@ -128,4 +131,6 @@ private:
     // return true if we are using a feedback pin
     bool using_feedback_pin(void) const { return _feedback_pin > 0; }
 
+    // Optical Center offsets from center of gravity
+    AP_Vector3f    _offset_positions;
 };
