@@ -92,8 +92,8 @@ const AP_Param::GroupInfo AP_Camera::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("FEEDBACK_POL",  9, AP_Camera, _feedback_polarity, 1),
 
-    // @Param: _OFF_POS
-    // @DisplayName: Relative position in meters from Mount to CG in NEF referential.
+    // @Param: OFF_POS
+    // @DisplayName: Relative position in meters from Mount to CG in NED referential.
     // @Description: Allows you to get camera messages and logs consistent with mount position.
     // @Units: m
     // @User: Advanced
