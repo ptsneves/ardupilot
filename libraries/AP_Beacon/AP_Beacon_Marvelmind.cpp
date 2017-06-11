@@ -213,7 +213,7 @@ void AP_Beacon_Marvelmind::process_beacons_positions_highres_datagram()
 
 void AP_Beacon_Marvelmind::update(void)
 {
-    if (uart == nullptr) {
+    if (uart == nullptr || hedge == nullptr || hedge->position_buffer == nullptr) {
         return;
     }
     // read any available characters
